@@ -1,58 +1,30 @@
-const {WebSocket} = require('ws');
-// const ws1 = new WebSocket('ws://localhost:8080');
+const readline = require('node:readline');
+const {ChatClient} = require('./client/ChatClient');
 
-// ws1.on('error', console.error);
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
 
-// ws1.on('open', function open() {
-//     console.log('connected')  
-//     ws1.send('C1 Hello');
-// });
+rl.question(`What's your name? `, name => {
+    rl.close();
+    init(name);
+});
 
-// ws1.on('message', function message(data) {
-//   console.log('C1 received: %s', data);
-// });
+const init = (name) => {
+    const client = new ChatClient ({url:'ws://localhost:8080', username: name});
+    client.init();
 
-// const ws2 = new WebSocket('ws://localhost:8080');
-
-// ws2.on('error', console.error);
-
-// ws2.on('open', function open() {
-//     console.log('connected')  
-//     ws2.send('C2 Hello');
-// });
-
-// ws2.on('message', function message(data) {
-//   console.log('C2 received: %s', data);
-// });
-
-// const ws3 = new WebSocket('ws://localhost:8080');
-
-// ws3.on('error', console.error);
-
-// ws3.on('open', function open() {
-//     console.log('connected')  
-//     ws3.send('C3 Hello');
-// });
-
-// ws3.on('message', function message(data) {
-//   console.log('C3 received: %s', data);
-// });
-
-const wsClientFactory = (id) => {
-    const ws = new WebSocket('ws://localhost:8080');
-    ws.on('error', console.error);
-
-    ws.on('open', function open() {
-        console.log(`connected ${id} `)  
-        ws.send(`${id} Hello`);
+    const chatInput = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout
     });
-    
-    ws.on('message', function message(data) {
-      console.log(`${id} received: %s`, data);
+    chatInput.on('line', (input) => {
+        console.log('Input:', input);
+        if (input.trim().toLowerCase() === 'exit'){
+                chatInput.close();
+            } else {
+                client.send(input);
+            }
     });
-    
 }
-
-const wsClient1 = wsClientFactory(1);
-const wsClient2 = wsClientFactory(2);
-const wsClient3 = wsClientFactory(3);
