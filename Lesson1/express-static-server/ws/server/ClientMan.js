@@ -8,6 +8,7 @@ class Client{
     this.sessionId = options.sessionId || randomUUID();
     this.sendOption();
    }
+
    sendOption(){
        this.send({
             type: 'options',
@@ -17,6 +18,12 @@ class Client{
             }
        });
    }
+
+   updateWS(ws){
+        this.ws.terminate();
+        this.ws = ws;
+   }
+
    send(msObject){
         this.ws.send(JSON.stringify(msObject));
    }

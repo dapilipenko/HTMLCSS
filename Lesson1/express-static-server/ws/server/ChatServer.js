@@ -6,16 +6,19 @@ class ChatServer {
     constructor(options){
         this.port = options.port;
     }
+
     init(){
         this.wss = new WebSocketServer({ port: this.port });
         this.wss.on('connection', (ws) => this.OnConnection(ws));
         this.wss.on('error', console.error);
         console.log(`ChatServer started on port ${this.port}`)
     } 
+
     OnConnection(ws){
         console.log('new connection');  
         ws.on('message',(data) => this.onMessage(ws, data));
-    }   
+    }  
+
     onMessage(ws, data){
         const msObject = JSON.parse(data.toString());
         console.log(msObject)
@@ -32,8 +35,17 @@ class ChatServer {
             default:
                 console.log('unknow messahe type');    
         }
-    }  
+    } 
+
     createClient(ws, msObject){
+        const ifClientExists = this.clientsMap.get(msObject.sessionId);
+        if (ifClientExists){
+            const client = this.clientsMap.get(msObject.sessionId);
+            client.updateWS(ws);
+            console.log(`Client ${client.username} reconnected`);
+            return;
+        }
+
         const client = new Client({
             ws: ws,
             username: msObject.data.username,
@@ -41,8 +53,8 @@ class ChatServer {
         });
         this.clientsMap.set(client.sessionId, client)
         console.log(`Client ${client.username} connected`);
-        
     }
+
     broadcast(msObject){
         const sender = this.clientsMap.get(msObject.sessionId);
         console.log(msObject);
@@ -59,4 +71,5 @@ class ChatServer {
         });
     }                                                                         
 }
+
 module.exports = {ChatServer};
