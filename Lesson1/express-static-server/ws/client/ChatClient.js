@@ -1,6 +1,7 @@
 const {WebSocket} = require('ws')
 
 class ChatClient{
+    secretKey = 'aelwfhlaef';
     secretIV = 'aifjaoeifjo';
     encMethod = 'aes-256-cbc';
     cryptors = require('node:crypto');
@@ -52,6 +53,15 @@ class ChatClient{
         const cipher = this.cryptors.createCipheriv(this.encMethod, key, encIv)
         const encrypted = cipher.update(data, 'utf8', 'hex') + cipher.final('hex')
         return Buffer.from(encrypted).toString('base64')
+    }
+    decryptData(encryptedData) {
+        if(encryptedData == null || encryptedData == '' || encryptedData[0] == '{') return encryptedData;
+        const key = this.cryptors.createHash('sha512').update(this.secretKey).digest('hex').substring(0,32);
+        const encIv = this.cryptors.createHash('sha512').update(this.secretIV).digest('hex').substring(0,16);
+        const buff = Buffer.from(encryptedData, 'base64');
+        const encryptedDataBuff = buff.toString('utf-8');
+        const decipher = this.cryptors.createDecipheriv(this.encMethod, key, encIv);
+        return decipher.update(encryptedDataBuff, 'hex', 'utf8') + decipher.final('utf8');
     }    
   send(data){
         const msObject = {
