@@ -1,10 +1,15 @@
 const {WebSocket} = require('ws')
 
 class ChatClient{
+    secretIV = 'aifjaoeifjo';
+    encMethod = 'aes-256-cbc';
+    cryptors = require('node:crypto');
+
     constructor(options){
         this.ws = new WebSocket(options.url);
         this.sessionId = options.sessionId || null;
         this.username = options.username;
+        this.key = options.key;
     }
     init() {
         this.ws.on('open', () => this.onOpen());
@@ -41,11 +46,19 @@ class ChatClient{
         this.sessionId = msObject.sessionId;
         console.log('Your sessionId: ', this.sessionId); 
     }
-    send(data){
+    encryptData (data) {
+        const key = this.cryptors.createHash('sha512').update(this.key).digest('hex').substring(0,32)
+        const encIv = this.cryptors.createHash('sha512').update(this.secretIV).digest('hex').substring(0,16)
+        const cipher = this.cryptors.createCipheriv(this.encMethod, key, encIv)
+        const encrypted = cipher.update(data, 'utf8', 'hex') + cipher.final('hex')
+        return Buffer.from(encrypted).toString('base64')
+    }    
+  send(data){
         const msObject = {
             type: 'message',
             sessionId : this.sessionId,
-            data: data
+            data: this.key !== null ? this.encryptData(data) : data,
+            crypto: this.key !== null
         }
         this.ws.send(JSON.stringify(msObject));
     }

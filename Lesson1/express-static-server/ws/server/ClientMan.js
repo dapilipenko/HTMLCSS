@@ -1,4 +1,4 @@
-const {randomUUID} = require("crypto")
+const {randomUUID} = require("crypto");
 let uuid = crypto.randomUUID();
 
 class Client{
